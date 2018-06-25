@@ -16,7 +16,7 @@ ComSpen
 *.cbp
 *.layout
 
-
+*.properties
 
 GPATH
 GRTAGS

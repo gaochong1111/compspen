@@ -2,6 +2,8 @@ build/*
 
 # binary
 
+ComSpen
+
 ./*.smt
 
 #objs
@@ -14,7 +16,6 @@ build/*
 *.cbp
 *.layout
 
-samples/test
 
 
 GPATH

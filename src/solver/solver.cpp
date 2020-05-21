@@ -36,10 +36,6 @@ void solver::solve() {
     std::cout << info;
 }
 
-
-
-
-
 /**
  * get data and space part by formula
  * @param formula : the formula
@@ -145,7 +141,6 @@ z3::expr solver::abs_space(z3::expr &space, z3::expr_vector& new_bools) {
 
     return f_abs;
 }
-
 
 /**
  * compute phi_star by new_bools

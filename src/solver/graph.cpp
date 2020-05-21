@@ -5,10 +5,6 @@
 #include <fstream>
 
 #include "graph.h"
-// #include "slid_sat.h"
-// #include "sl_sat.h"
-
-// using namespace std;
 
 /* --------------------------------------------------------------------------*/
 /**
@@ -33,6 +29,7 @@ graph& graph::operator=(const graph& g)
 	cycle = g.cycle;
 	edge_cycle = g.edge_cycle;
 	adj_list = g.adj_list;
+    return (*this);
 }
 graph::graph(graph&& g) noexcept
 {
@@ -49,6 +46,7 @@ graph& graph::operator=(graph&& g) noexcept
 	cycle = g.cycle;
 	edge_cycle = g.edge_cycle;
 	adj_list = g.adj_list;
+    return (*this);
 }
 void graph::init(std::vector<std::set<int> >& eq_class_vec,  std::vector<std::pair<std::pair<int, int>, int> >& edge_vec)
 {

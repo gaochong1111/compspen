@@ -105,8 +105,8 @@ public:
         void error_wo_pos(char const * msg) ;
 
 
-        int line() {m_scanner.get_line();}
-        int pos() {m_scanner.get_pos();}
+        int line() {return m_scanner.get_line();}
+        int pos() {return m_scanner.get_pos();}
         Log& logger() {return m_ctx.logger();}
         z3::context& z3_ctx() {return m_ctx.z3_context();}
 

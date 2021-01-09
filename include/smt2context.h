@@ -19,6 +19,7 @@ private:
 
 public:
         // some aux info used by solver
+        std::string division;
         int omega_eq_size;
         z3::expr phi_space;
         z3::expr psi_space;
@@ -37,12 +38,14 @@ smt2context(z3::context& ctx, std::string log_file, bool exit_err=true) :m_ctx(c
          m_exit_on_err(exit_err),
                 m_negf(ctx),
                 m_posf(ctx),
+                division("NORMAL"),
                 omega_eq_size(0),
                 phi_space(ctx),
                 phi_abs(ctx),
                 psi_abs(ctx),
                 psi_space(ctx)
         {
+		m_log.disable();
                 m_log.common_log_init(log_file);
         }
 

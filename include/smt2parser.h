@@ -85,6 +85,7 @@ public:
         z3::symbol               m_declare_fun;
         z3::symbol               m_declare_sort;
         z3::symbol               m_set_logic;
+        z3::symbol               m_set_info;
 
 
         void scan_core();
@@ -105,8 +106,8 @@ public:
         void error_wo_pos(char const * msg) ;
 
 
-        int line() {return m_scanner.get_line();}
-        int pos() {return m_scanner.get_pos();}
+        int line() {m_scanner.get_line();}
+        int pos() {m_scanner.get_pos();}
         Log& logger() {return m_ctx.logger();}
         z3::context& z3_ctx() {return m_ctx.z3_context();}
 
@@ -178,6 +179,8 @@ public:
         void parse_get_model();
 
         void parse_check_sat();
+
+        void parse_set_info();
 
         void parse_cmd();
 

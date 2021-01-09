@@ -5,6 +5,10 @@
 #include <fstream>
 
 #include "graph.h"
+// #include "slid_sat.h"
+// #include "sl_sat.h"
+
+// using namespace std;
 
 /* --------------------------------------------------------------------------*/
 /**
@@ -29,7 +33,6 @@ graph& graph::operator=(const graph& g)
 	cycle = g.cycle;
 	edge_cycle = g.edge_cycle;
 	adj_list = g.adj_list;
-    return (*this);
 }
 graph::graph(graph&& g) noexcept
 {
@@ -46,7 +49,6 @@ graph& graph::operator=(graph&& g) noexcept
 	cycle = g.cycle;
 	edge_cycle = g.edge_cycle;
 	adj_list = g.adj_list;
-    return (*this);
 }
 void graph::init(std::vector<std::set<int> >& eq_class_vec,  std::vector<std::pair<std::pair<int, int>, int> >& edge_vec)
 {
@@ -267,15 +269,16 @@ void graph::seek_cc()
 /* --------------------------------------------------------------------------*/
 void graph::seek_cycle()
 {
-	if (cycle.size()>0) cycle.clear();
+	if (cycle.size() > 0) cycle.clear();
+	if (edge_cycle.size() > 0) edge_cycle.clear();
 	size_t i, j;
 	std::vector<std::vector<int>> t;
 	edge_cycles_t e_cycles;
 	adjacency_list::out_edge_iterator it1, it2;
 	std::vector<int> c, t1, s;
 	std::map<int, bool> m;
-	for (i = 0; i < cc.size(); ++i) {
-		c.assign(begin(cc[i]), end(cc[i]));
+	for (i = 0; i < cc.size(); ++i) { // 连通分支
+		c.assign(begin(cc[i]), end(cc[i])); // grpah node
 
 		// cc [1,2,3,...]
 		for (j = 0; j < c.size(); ++j)
@@ -302,14 +305,16 @@ void graph::seek_cycle()
 							for (int idx=0; idx+1<t1.size(); idx++) {
 								edge_t edge;
 								edge.first.first = t1[idx];
-								edge.first.second = t1[idx+1];
-								edge.second = get_edge_property(t1[idx], t1[idx+1]);
+								edge.first.second = t1[(idx+1)];
+								edge.second = get_edge_property(t1[idx], t1[(idx+1)]);
 								e_cycle.push_back(edge);
 							}
 							std::pair<int,int> eg(k, tar);
 							edge_t edge(eg, adj_list[*it1]);
 							e_cycle.push_back(edge);
 							e_cycles.push_back(e_cycle);
+
+
 							t1.clear();
 						}
 					}
@@ -328,8 +333,10 @@ void graph::seek_cycle()
 				}
 			}
 		}
+
 		cycle.push_back(t);
 		edge_cycle.push_back(e_cycles);
+
 	}
 }
 
@@ -420,10 +427,12 @@ bool graph::is_cycle(const std::pair<int, int>& coord) const
 
 std::vector<int> graph::get_cycle(const std::pair<int, int>& coord) const
 {
+    assert(coord.first < cycle.size() && coord.second < cycle[coord.first].size());
 	return cycle[coord.first][coord.second];
 }
 
 std::vector<graph::edge_t> graph::get_edge_cycle(const std::pair<int, int>& coord) const {
+    assert(coord.first < edge_cycle.size() && coord.second < edge_cycle[coord.first].size());
 	return edge_cycle[coord.first][coord.second];
 }
 

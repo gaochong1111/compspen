@@ -23,7 +23,7 @@ public:
                         // listsolver sol(ctx);
                         //sol.solve();
                         assert(ctx.pred_size() > 0);
-                        if (ctx.get_pred(0).get_pars().size() == 2) {
+                        if (ctx.division != "NORMAL") {
                             return new alistsolver(ctx);
                         } else {
                             return new listsolver(ctx);

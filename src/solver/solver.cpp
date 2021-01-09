@@ -1,5 +1,4 @@
 #include "solver.h"
-#include <sys/time.h>
 
 
 /**
@@ -8,33 +7,26 @@
 void solver::solve() {
     // 1. check_preds
     check_preds();
-    struct timeval tvBegin, tvEnd, tvDiff;
-    // 2. start timer
-    gettimeofday (&tvBegin, NULL);
 
     // 3. check sat or entl
     if (m_ctx.is_sat()) {
-        std::cout << "Checking satisfiability.\n";
+        // std::cout << "Checking satisfiability.\n";
         z3::check_result result = check_sat();
-        std::cout << "The result: " << result << std::endl;
+        std::cout << result << std::endl;
     } else {
-        std::cout << "Checking entailment.\n";
+        // std::cout << "Checking entailment.\n";
         z3::check_result result = check_entl();
         if (result == z3::unsat) {
-            std::cout << "The result: unsat"  << std::endl;
+            std::cout << "unsat"  << std::endl;
         } else {
-            std::cout << "The result: sat" << std::endl;
+            std::cout << "sat" << std::endl;
         }
     }
-    // 4. end timers
-    gettimeofday (&tvEnd, NULL);
-    long int diff = (tvEnd.tv_usec + 1000000 * tvEnd.tv_sec)
-        - (tvBegin.tv_usec + 1000000 * tvBegin.tv_sec);
-    tvDiff.tv_sec = diff / 1000000;
-    tvDiff.tv_usec = diff % 1000000;
-    std::string info = logger().string_format("\nTotal time (sec): %ld.%06ld\n\n", tvDiff.tv_sec, tvDiff.tv_usec);
-    std::cout << info;
 }
+
+
+
+
 
 /**
  * get data and space part by formula
@@ -95,7 +87,22 @@ void solver::get_data_space(z3::expr &formula, z3::expr &data, z3::expr &space) 
     }
 
     if (Z3_ast(space) != 0 && space.decl().name().str() == "tobool") {
-        if (space.arg(0).decl().name().str() == "ssep") space = space.arg(0);
+        if (space.arg(0).decl().name().str() == "ssep") {
+            space = space.arg(0);
+            if (space.arg(space.num_args()-1).to_string() == "emp") {
+                z3::symbol ssep_sys = z3_ctx().str_symbol("ssep");
+                z3::sort range = z3_ctx().uninterpreted_sort("Space");
+                z3::sort_vector domains(z3_ctx());
+                z3::expr_vector args(z3_ctx());
+                for (unsigned i=0; i<space.num_args()-1; i++) {
+                        domains.push_back(range);
+                        args.push_back(space.arg(i));
+                }
+                z3::func_decl ssep_f = z3_ctx().function(ssep_sys, domains, range);
+                space = ssep_f(args);
+            }
+        }
+
     }
 }
 
@@ -141,6 +148,7 @@ z3::expr solver::abs_space(z3::expr &space, z3::expr_vector& new_bools) {
 
     return f_abs;
 }
+
 
 /**
  * compute phi_star by new_bools

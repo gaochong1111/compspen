@@ -194,8 +194,14 @@ int smt2parser::check_var_exist(std::vector<z3::expr> &vec, z3::symbol& var_sym)
  *
  */
 void smt2parser::check_base_rule(z3::expr &base_rule) {
-        if (!base_rule.is_app() || base_rule.decl().name().str() != "and") {
-                throw smt2exception("'and' is excepted in the base rule", line(), pos());
+
+        if (!base_rule.is_app()) {
+                throw smt2exception("app is excepted in the base rule", line(), pos());
+        }
+        if (base_rule.decl().name().str() != "and") {
+            z3::expr_vector and_items(z3_ctx());
+            and_items.push_back(base_rule);
+            base_rule = z3::mk_and(and_items);
         }
         for (int i=0; i<base_rule.num_args()-1; i++) {
                 if (!base_rule.arg(i).is_app() ||
@@ -216,20 +222,35 @@ pred_rule smt2parser::check_rec_rule(z3::expr &rec_rule, std::string f_name) {
                 throw smt2exception("'exists' is excepted in the recursive rule", line(), pos());
         }
         z3::expr body = rec_rule.body();
-        if (!body.is_app() || body.decl().name().str() != "and") {
-                throw smt2exception("'and' is excepted in the recursive rule", line(), pos());
+        if (!body.is_app()) {
+                throw smt2exception("app is excepted in the recursive rule", line(), pos());
+        }
+        if (body.decl().name().str() != "and") {
+            z3::expr_vector and_items(z3_ctx());
+            and_items.push_back(body);
+            body = z3::mk_and(and_items);
         }
         // 1. data
         z3::expr_vector data_items(z3_ctx());
 
         int i=0;
+        int ct = 0;
         for (; i<body.num_args(); i++) {
                 assert(body.arg(i).is_app());
                 if (body.arg(i).decl().name().str() != "tobool") {
-                        data_items.push_back(body.arg(i));
+                        if (body.arg(i).decl().name().str() == "distinct") {
+                            ct++;
+                        } else {
+                            data_items.push_back(body.arg(i));
+                        }
                 } else {
                         break;
                 }
+        }
+        if (ct == 1) {
+            m_ctx.division = "ACYCLIC-SL";
+        } else if (ct == 2) {
+            m_ctx.division = "ACYCLIC-DLL";
         }
         if (i==body.num_args()) {
                 throw smt2exception("'tobool' is excepted in the recursive rule", line(), pos());
@@ -1155,6 +1176,7 @@ void smt2parser::parse_define_fun() {
                 domain.push_back(m_sorted_var_stack[i].get_sort());
         }
 
+
         logger()  << "parse the number of parameters : " << num << std::endl;
 
         z3::sort range = parse_sort();
@@ -1243,9 +1265,21 @@ void smt2parser::parse_check_sat() {
         if (sol == NULL) {
                 sol = solverfactory::get_solver(m_ctx);
         }
+
+        // std::cout << "DIVISION: " << m_ctx.division << std::endl;
+        // exit(-1);
         if (sol != NULL) {
                 sol->solve();
         }
+}
+
+void smt2parser::parse_set_info() {
+    assert(curr_is_identifier());
+    assert(m_set_info ==  curr_id());
+    next();
+    next();
+    next();
+    check_rparen("invalid get-model, excepted ')'");
 }
 
 
@@ -1302,6 +1336,10 @@ void smt2parser::parse_cmd() {
         if (s == m_get_model) {
                 parse_get_model();
                 return;
+        }
+
+        if (s == m_set_info) {
+            parse_set_info();
         }
 
 }
@@ -1476,6 +1514,7 @@ smt2parser::smt2parser(smt2context & ctx, std::istream & is):
         m_declare_fun(ctx.z3_context().str_symbol("declare-fun")),
         m_declare_sort(ctx.z3_context().str_symbol("declare-sort")),
         m_set_logic(ctx.z3_context().str_symbol("set-logic")),
+        m_set_info(ctx.z3_context().str_symbol("set-info")),
         m_num_open_paren(0)
 {
         init_theory();

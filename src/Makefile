@@ -25,7 +25,8 @@ $(DEPS):
 
 $(TARGET):$(ALL_OBJS)
 	$(CC) $(CPP_FLAGS) -o $@ $^ \
-	$(F_LIB)
+	$(F_LIB) \
+	$(F_RUN_LIB)
 
 
 

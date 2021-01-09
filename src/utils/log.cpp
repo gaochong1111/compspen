@@ -20,6 +20,7 @@ void Log::close(){
 }
 
 bool Log::common_log_init(std::string name){
+    if (!m_b_enabled) return false;
     time_t t_now_time;
     time(&t_now_time);
 
